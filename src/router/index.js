@@ -1,22 +1,38 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+
+// 登录配置
+import Login from '../views/Login.vue'
+import {getToken} from '../utils/index'
+import store from '../store'
 
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    name: 'login',
+    component: Login
   },
   {
     path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    name: 'about',
+    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue'),
+    // 路由独享的守卫
+    beforeEnter: (to,from,next) => {
+      let token = getToken();
+      if(token){
+        // 查询info
+        store.dispatch('login/userInfo',token)
+        .then(()=>{
+          // 当获取万用户信息之后才允许跳转
+          next();
+        })
+      } else {
+        // 跳转到登录
+        next({path:'/login'})
+      }
+    }
   }
 ]
 
